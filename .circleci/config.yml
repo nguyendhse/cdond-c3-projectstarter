@@ -203,17 +203,17 @@ jobs:
             npm install
             npm run migrations | tee migration_results.txt
       - run:
-          name: Send migration results to memstash
+          name: Send migration results to kvdb
           working_directory: ./backend
           command: |
             if grep -q "has been executed successfully" migration_results.txt
             then
-              echo "DB migration was successful, will update memstash..."
-              curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/migration_success_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              echo "DB migration was successful, will update kvdb..."
+              curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/migration_success_${CIRCLE_WORKFLOW_ID:0:7}  -k -d '1'
 
             else
               echo "DB migration failed, please verify setup! Probably the database already exists. Verify setup!"
-              curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/migration_fail_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/migration_fail_${CIRCLE_WORKFLOW_ID:0:7} -k -d '1'
 
             fi
             echo "WorkflowID=${CIRCLE_WORKFLOW_ID:0:7}"
@@ -229,6 +229,47 @@ jobs:
 
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
+  deploy-frontend:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+
+      - run:
+          name: Install dependencies
+          command: |
+            # your code here          
+            yum install tar -y
+            yum install gzip -y
+            yum install python3-pip -y
+            yum -y install curl -y
+            curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+            yum install -y nodejs
+            
+      - run:
+          name: Get backend url
+          command: |
+            # your code here
+            export BACKEND_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query "Reservations[*].Instances[*].PublicIpAddress" \
+              --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "API_URL = ${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
+                        
+      - run:
+          name: Deploy frontend objects
+          command: |
+            # your code here
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 sync dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
+  
 workflows:
   default:
     jobs:
