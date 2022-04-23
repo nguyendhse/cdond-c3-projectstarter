@@ -209,10 +209,12 @@ jobs:
             if grep -q "has been executed successfully" migration_results.txt
             then
               echo "DB migration was successful, will update memstash..."
-              curl -H "Content-Type: text/plain" -H "token: d06dc0ca-934b-4129-85bf-d7aaf688b969" --request PUT --data "success" https://api.memstash.io/values/DB_${CIRCLE_WORKFLOW_ID:0:7}
+              curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/migration_success_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+
             else
               echo "DB migration failed, please verify setup! Probably the database already exists. Verify setup!"
-              curl -H "Content-Type: text/plain" -H "token: d06dc0ca-934b-4129-85bf-d7aaf688b969" --request PUT --data "failure" https://api.memstash.io/values/DB_${CIRCLE_WORKFLOW_ID:0:7}
+              curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/migration_fail_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+
             fi
             echo "WorkflowID=${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
