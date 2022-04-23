@@ -5,14 +5,18 @@ Parameters:
   ID:
     Description: Unique identifier.
     Type: String
-
+  EC2Vpc:
+    ConstraintDescription: Must be a valid VpcId
+    Description: Select the VPC to use
+    Type: AWS::EC2::VPC::Id
 Resources:
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: !Sub UdaPeople-${ID}
       GroupDescription: Allow port 22 and port 3030.
-      # VpcId: vpc-0863448a9482bf915
+      VpcId:
+        Ref: EC2Vpc
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
