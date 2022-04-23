@@ -12,7 +12,7 @@ Parameters:
   SubnetId:
     Type: String
     Description: Subnet in which to launch an EC2
-    Default: subnet-00a9e7fe92c818a79
+    Default: subnet-07565f3262731471d
   
   InstanceType:
     Type: String
