@@ -12,7 +12,7 @@ Resources:
     Properties:
       GroupName: !Sub UdaPeople-${ID}
       GroupDescription: Allow port 22 and port 3030.
-      VpcId: vpc-0863448a9482bf915
+      # VpcId: vpc-0863448a9482bf915
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
