@@ -272,7 +272,7 @@ jobs:
             aws s3 sync dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-  ddeploy-backend:
+  deploy-backend:
     docker:
       - image: python:3.7-alpine3.11
     steps:
