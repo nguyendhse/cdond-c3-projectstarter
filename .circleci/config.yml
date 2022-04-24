@@ -151,10 +151,13 @@ jobs:
             BACK_END_PUBLIC_IP=$(aws ec2 describe-instances \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
               --output text)
-            echo "[web]" >> .circleci/ansible/inventory.txt              
             echo "$BACK_END_PUBLIC_IP" >> .circleci/ansible/inventory.txt              
             pwd
             cat .circleci/ansible/inventory.txt
+      - run:
+          name: Install tar utility
+          command: |
+            yum install -y tar gzip
       - persist_to_workspace:
           root: ~/
           paths:
@@ -168,21 +171,17 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["bd:1d:a8:32:ba:16:cc:63:96:d7:97:42:e0:55:93:b8"]
+      - attach_workspace:
+          at: ~/
       - run:
-          name: Install ansible
+          name: Install dependencies
           command: |
             apk add --update ansible
-            ansible-galaxy install weareinteractive.environment
       - run:
-          name: Install curl
-          command: apk add curl
-      - run:
-          name: Configure backend server
+          name: Configure server
           command: |
-            pwd 
-            cat ~/project/.circleci/ansible/inventory.txt
-            ANSIBLE_HOST_KEY_CHECKING=False 
-            ansible-playbook -i .circleci/ansible/inventory .circleci/ansible/config-server-playbook.yml
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   run-migrations:
