@@ -163,31 +163,26 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   configure-infrastructure:
     docker:
-      - image: python:3.9.0-alpine
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints: ["bd:1d:a8:32:ba:16:cc:63:96:d7:97:42:e0:55:93:b8"]
-      - attach_workspace:
-          at: ~/
       - run:
-          name: Install dependencies
-          working_directory: ./.circleci/ansible
+          name: Install ansible
           command: |
             apk add --update ansible
-            ansible --version
-            pip install awscli
-            aws --version
+            ansible-galaxy install weareinteractive.environment
       - run:
-          name: Configure server
-          working_directory: ~/project/.circleci/ansible
+          name: Install curl
+          command: apk add curl
+      - run:
+          name: Configure backend server
           command: |
-            pwd &&
-            ls -la
-            cat inventory.txt
+            pwd 
+            cat ~/project/.circleci/ansible/inventory.txt
             ANSIBLE_HOST_KEY_CHECKING=False 
-
-            ansible-playbook -i inventory.txt configure-server.yml
+            ansible-playbook -i .circleci/ansible/inventory .circleci/ansible/config-server-playbook.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   run-migrations:
