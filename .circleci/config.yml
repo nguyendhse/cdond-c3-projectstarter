@@ -163,30 +163,28 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   configure-infrastructure:
     docker:
-      - image: python:3.9.0-alpine
+      # Docker image here that supports Ansible
+      - image: python:3.7-alpine3.11
     steps:
+      # Checkout code from git
       - checkout
+      # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["bd:1d:a8:32:ba:16:cc:63:96:d7:97:42:e0:55:93:b8"]
+          fingerprints: ["99:f9:1b:08:32:5e:56:54:30:13:39:b0:10:d0:29:9f"] 
+      # attach workspace
       - attach_workspace:
           at: ~/
       - run:
           name: Install dependencies
-          working_directory: ./.circleci/ansible
           command: |
             apk add --update ansible
-            ansible --version
-            pip install awscli
-            aws --version
       - run:
           name: Configure server
-          working_directory: ./.circleci/ansible
-          command: |
-            pwd &&
-            ls -la
-            cat inventory.txt
-            ansible-playbook -i inventory.txt configure-server.yml
-
+          command: |          
+            pwd 
+            cat ~/project/.circleci/ansible//inventory.txt
+            ANSIBLE_HOST_KEY_CHECKING=False 
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/configure-server.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   run-migrations:
