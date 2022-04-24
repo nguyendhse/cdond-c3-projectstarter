@@ -126,7 +126,7 @@ jobs:
           name: installing required dependencies
           command: |
             yum install tar -y
-            yum install gzip -y
+            yum install gzip -y  
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -134,8 +134,8 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --tags project=udapeople \
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" EC2Vpc="vpc-0863448a9482bf915"
-
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" EC2Vpc="vpc-0863448a9482bf915"   
+              
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -143,8 +143,8 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --tags project=udapeople \
               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"   
+              
       - run:
           name: Add back-end ip to ansible inventory
           command: |
@@ -154,33 +154,36 @@ jobs:
             echo "$BACK_END_PUBLIC_IP" >> .circleci/ansible/inventory.txt              
             pwd
             cat .circleci/ansible/inventory.txt
-      - run:
-          name: Install tar utility
-          command: |
-            yum install -y tar gzip
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-  configure-infrastructure:
+   configure-infrastructure:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.9.0-alpine
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints: ["bd:1d:a8:32:ba:16:cc:63:96:d7:97:42:e0:55:93:b8"]
       - attach_workspace:
-          at: ~/
+          at: .
       - run:
           name: Install dependencies
+          working_directory: ./.circleci/ansible
           command: |
             apk add --update ansible
+            ansible --version
+            pip install awscli
+            aws --version
       - run:
           name: Configure server
+          working_directory: ./.circleci/ansible
           command: |
-            cd .circleci/ansible
+            pwd &&
+            ls -la
+            cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
