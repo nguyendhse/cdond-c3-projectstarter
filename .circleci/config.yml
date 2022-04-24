@@ -148,11 +148,12 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            BACK_END_PUBLIC_IP=$(aws ec2 describe-instances \
-              --query "Reservations[*].Instances[*].PublicIpAddress" \
-              --output text)
-            echo "$BACK_END_PUBLIC_IP" >> .circleci/ansible/inventory.txt              
-            pwd
+            aws --region us-east-1 \
+            ec2 describe-instances \
+              --filters \
+              "Name=instance-state-name,Values=running" \
+              --query 'Reservations[*].Instances[*].[PublicIpAddress]' \
+              --output text >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
@@ -213,19 +214,11 @@ jobs:
 
             else
               echo "DB migration failed, please verify setup! Probably the database already exists. Verify setup!"
-              curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/migration_fail_${CIRCLE_WORKFLOW_ID:0:7} -k -d '1'
+              curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/no_migration_${CIRCLE_WORKFLOW_ID:0:7} -k -d '1'
 
             fi
             echo "WorkflowID=${CIRCLE_WORKFLOW_ID:0:7}"
-      - run:
-          name: Install AWS CLI dependencies
-          working_directory: /tmp
-          command: |
-            sudo apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-          when: on_fail
+     
 
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
@@ -300,8 +293,7 @@ jobs:
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
-
+            ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   smoke-test:
