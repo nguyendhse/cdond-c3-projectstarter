@@ -272,63 +272,36 @@ jobs:
             aws s3 sync dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-  deploy-backend:
+  ddeploy-backend:
     docker:
       - image: python:3.7-alpine3.11
     steps:
-      # Checkout code from git
       - checkout
-      
-      # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["bd:1d:a8:32:ba:16:cc:63:96:d7:97:42:e0:55:93:b8"]
-          
+          fingerprints:
+            - "f9:ce:81:f5:7a:3d:ea:e3:72:a2:4c:8f:89:c0:c8:41"
       - attach_workspace:
           at: ~/
-          
       - run:
           name: Install dependencies
-          working_directory: ./.circleci/ansible
           command: |
-            # your code here
-            apk add --update ansible
-            apk add tar gzip
-            apk add curl
-            apk add gzip
-            apk add nodejs
-            apk add npm
+            apk add --update curl nodejs npm ansible zip
             pip install awscli
-            
-      - run:
-          name: Set env
-          command: |
-            echo ENVIROMENT=$ENVIROMENT > "backend/.env"
-            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
-            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
-            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "backend/.env"
-            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
-            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
-            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"  
-            
       - run:
           name: Deploy backend
           command: |
-            # your code here
             cd backend
             npm i
             npm run build
-            cp package* ./dist
             cd ..
-            tar -C backend -czvf /root/project/artifact.tar.gz .
-            
-            pwd 
-            cat ~/project/.circleci/ansible//inventory.txt
-            ANSIBLE_HOST_KEY_CHECKING=False 
+            tar -C backend -czvf artifact.tar.gz .
+            mkdir -p ./.circleci/ansible/roles/deploy/files
+            cp -r artifact.tar.gz ./.circleci/ansible/roles/deploy/files/
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+            export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
-      # Here's where you will add some code to rollback on failure  
 
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
