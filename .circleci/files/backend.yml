@@ -22,7 +22,7 @@ Resources:
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      # VpcId: !Ref EC2Vpc
+      VpcId: !Ref EC2Vpc
       GroupName: !Sub UdaPeople-${ID}
       GroupDescription: Allow port 22 and port 3030.
       SecurityGroupIngress:
@@ -39,13 +39,13 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref InstanceType
-      SecurityGroups:
+      SecurityGroupIds:
         - !Ref InstanceSecurityGroup
-      # SubnetId: !Ref SubnetId
+      SubnetId: !Ref SubnetId
       KeyName: AWS_Udacity_demo # If you use another key pair name, you should change this value to match.
       # If this ami id is not available for you, you can find another (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/finding-an-ami.html)
       # Ubuntu 18 or higher works fine
-      ImageId: ami-04505e74c0741db8d
+      ImageId: ami-0f9fc25dd2506cf6d
       Tags:
         - Key: Name
           Value: !Sub backend-${ID}
