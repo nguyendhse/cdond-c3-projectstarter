@@ -169,7 +169,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["bd:1d:a8:32:ba:16:cc:63:96:d7:97:42:e0:55:93:b8"]
       - attach_workspace:
-          at: .
+          at: ~/
       - run:
           name: Install dependencies
           working_directory: ./.circleci/ansible
@@ -197,7 +197,7 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - attach_workspace:
-          at: .
+          at: ~/
       - run:
           name: Run migrations
           working_directory: ./backend
