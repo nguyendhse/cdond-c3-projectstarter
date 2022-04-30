@@ -276,7 +276,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update curl nodejs npm ansible zip
+            apk add --update curl nodejs npm ansible zip dpkg
             pip install awscli
       - run:
           name: Deploy backend
@@ -292,6 +292,7 @@ jobs:
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             export ANSIBLE_HOST_KEY_CHECKING=False
+            dpkg --configure -a
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
