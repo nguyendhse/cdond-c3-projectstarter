@@ -263,7 +263,7 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   deploy-backend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - restore_cache:
@@ -274,25 +274,10 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Setup .env file
-          command: |
-            echo "NODE_ENV=production" >> backend/.env
-            echo "VERSION=1" >> backend/.env
-            echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
-            echo "TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}" >> backend/.env
-            echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
-            echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
-            echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
-            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
-            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
-            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
-            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
-      - run:
           name: Install dependencies
           command: |
-            sudo apt-get install gzip tar python3-pip -y
-            pip3 install awscli
-            pip3 install ansible
+            apk add --update curl nodejs npm ansible zip
+            pip install awscli
       - run:
           name: Deploy backend
           command: |
@@ -300,9 +285,9 @@ jobs:
             npm i
             npm run build
             cd ..
-            tar -C backend -czvf backend.tar.gz .
+            tar -C backend -czvf artifact.tar.gz .
             mkdir -p ./.circleci/ansible/roles/deploy/files
-            cp -r backend.tar.gz ./.circleci/ansible/roles/deploy/files/
+            cp -r artifact.tar.gz ./.circleci/ansible/roles/deploy/files/
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
