@@ -136,8 +136,8 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --tags project=udapeople \
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" EC2Vpc="vpc-0863448a9482bf915"   
-              
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" EC2Vpc="vpc-0863448a9482bf915"
+
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -145,8 +145,8 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --tags project=udapeople \
               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"   
-              
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+
       - run:
           name: Add back-end ip to ansible inventory
           command: |
@@ -221,7 +221,6 @@ jobs:
 
             fi
             echo "WorkflowID=${CIRCLE_WORKFLOW_ID:0:7}"
-     
 
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
@@ -296,6 +295,7 @@ jobs:
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
   smoke-test:
     docker:
       - image: python:3.7-alpine3.11
@@ -382,7 +382,7 @@ jobs:
             fi
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-      - revert-migrations          
+      - revert-migrations
 
 workflows:
   default:
@@ -433,7 +433,7 @@ workflows:
             branches:
               only: [master]
       - cleanup:
-         requires: [cloudfront-update]
-         filters:
-           branches:
-             only: [master]
+          requires: [cloudfront-update]
+          filters:
+            branches:
+              only: [master]
