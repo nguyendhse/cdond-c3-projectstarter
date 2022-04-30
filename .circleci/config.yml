@@ -120,9 +120,6 @@ jobs:
             npm audit fix --force
             npm audit --audit-level=critical
 
-      - save_cache:
-          paths: [ backend/node_modules ]
-          key: backend-build
   deploy-infrastructure:
     docker:
       - image: amazon/aws-cli
