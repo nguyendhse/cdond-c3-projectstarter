@@ -263,19 +263,35 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [backend-build]
       - add_ssh_keys:
-          fingerprints:
-            - "bd:1d:a8:32:ba:16:cc:63:96:d7:97:42:e0:55:93:b8"
+          fingerprints: ['cd:48:66:c3:63:ea:d6:e3:02:69:9f:e7:a1:88:bb:3b']
       - attach_workspace:
           at: ~/
       - run:
+          name: Setup .env file
+          command: |
+            echo "NODE_ENV=production" >> backend/.env
+            echo "VERSION=1" >> backend/.env
+            echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
+            echo "TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}" >> backend/.env
+            echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
+            echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
+            echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
+            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
+            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
+            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
+            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
+      - run:
           name: Install dependencies
           command: |
-            apk add --update curl nodejs npm ansible zip dpkg
-            pip install awscli
+            sudo apt-get install gzip tar python3-pip -y
+            pip3 install awscli
+            pip3 install ansible
       - run:
           name: Deploy backend
           command: |
