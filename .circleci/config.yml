@@ -22,14 +22,16 @@ commands:
     steps:
       - run:
           name: Revert migrations
-          # Add when this will run
+          when: on_fail
           command: |
+            echo "Reverting Database....."
+
+            curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/revert_migration_success_${CIRCLE_WORKFLOW_ID:0:7}  -k -d '1'
             cd ~/project/backend
             if [[ -f "~/project/.circleci/outputs/db_migration_success" ]]; then
               npm i
               npm run migration:revert
               echo "DB migration was successful, will update kvdb..."
-              curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/revert_migration_success_${CIRCLE_WORKFLOW_ID:0:7}  -k -d '1'
             fi
 
 jobs:
