@@ -137,7 +137,7 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --tags project=udapeople \
               --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" EC2Vpc="vpc-0863448a9482bf915" \
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -152,7 +152,7 @@ jobs:
             echo "[web]" > .circleci/ansible/inventory.txt
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}"  \
               --output text >> .circleci/ansible/inventory.txt
             
             cat .circleci/ansible/inventory.txt
@@ -359,7 +359,7 @@ jobs:
               --template-file .circleci/files/cloudfront.yml \
               --stack-name UdaP \
               --region us-east-1 \
-              --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" EC2Vpc="vpc-0863448a9482bf915" \
               --tags project=udapeople
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
