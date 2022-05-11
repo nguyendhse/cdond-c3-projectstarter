@@ -170,7 +170,7 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   configure-infrastructure:
     docker:
-      - image: python:3.9.0-alpine
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - add_ssh_keys:
@@ -179,14 +179,26 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Install dependencies
+          name: Install ansible
           command: |
             apk add --update ansible
       - run:
+          name: Install aws-cli
+          command: |
+            apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
+      - run:
+          name: Install gzip
+          command: |
+            apk update
+            apk add --no-cache --upgrade gzip
+      - run:
+          name: Install tar
+          command: |
+            apk add --no-cache tar
+      - run:
           name: Configure server
           command: |
-            cd .circleci/ansible
-            ansible-playbook -i inventory.txt configure-server.yml
+            ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   run-migrations:
@@ -225,7 +237,7 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: python:3.9.0-alpine
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - restore_cache:
@@ -261,7 +273,7 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   deploy-backend:
     docker:
-      - image: python:3.9.0-alpine
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - restore_cache:
@@ -296,7 +308,7 @@ jobs:
 
   smoke-test:
     docker:
-      - image: python:3.9.0-alpine
+      - image: python:3.7-alpine3.11
 
     steps:
       - checkout
