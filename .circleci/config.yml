@@ -25,6 +25,8 @@ commands:
             if [[ -f "~/project/.circleci/outputs/db_migration_success" ]]; then
               npm i
               npm run migration:revert
+              echo "DB migration was successful, will update kvdb..."
+              curl https://kvdb.io/9YgYwr1KHH7SJ6jmWP9ZGy/revert_migration_success_${CIRCLE_WORKFLOW_ID:0:7}  -k -d '1'
             fi
 
 jobs:
@@ -317,7 +319,7 @@ jobs:
             echo "${API_URL}"
             if curl -s "${API_URL}/api/status" | grep "ok"
             then
-                return 0
+                return 1
             else
                 return 1
             fi
@@ -328,13 +330,14 @@ jobs:
             echo ${URL}
             if curl -s ${URL} | grep "Welcome"
             then
-                return 0
+                return 1
             else
                 return 1
             fi
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   cloudfront-update:
     docker:
       - image: amazon/aws-cli
@@ -355,7 +358,8 @@ jobs:
               --tags project=udapeople
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert-migrations
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   cleanup:
     docker:
       - image: amazon/aws-cli
@@ -382,8 +386,8 @@ jobs:
             fi
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-      - revert-migrations
-
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 workflows:
   default:
     jobs:
@@ -432,8 +436,8 @@ workflows:
           filters:
             branches:
               only: [master]
-      - cleanup:
-          requires: [cloudfront-update]
-          filters:
-            branches:
-              only: [master]
+      # - cleanup:
+      #     requires: [cloudfront-update]
+      #     filters:
+      #       branches:
+      #         only: [master]
